@@ -22,6 +22,7 @@ verbose = 0
 wsdl = 'SOME_WSDL_URL'
 csvSet = 0
 pathToCsv = ''
+silent = 0
 
 #init colorama
 init()
@@ -31,31 +32,33 @@ if len(sys.argv) != 1:
     for i in range(len(sys.argv)):
         if sys.argv[i] == 'verbose':
             verbose = i
+        elif sys.argv[i] == 'silent':
+            silent = 1
         elif '.csv' in sys.argv[i]: 
             pathToCsv = sys.argv[i]
             csvSet = 1
 
 #only continue if csv is given
 if not csvSet:
-    print(cRed + "ERROR: no csv given")
+    print(cRed + 'ERROR: no csv given')
 else:
     #initialize SOAP Client
     soapClient = Client(wsdl)
-    print(cYellow + "initializing SOAP-Client")
-    print(cYellow + "WSDL: " + wsdl)
-    print(cYellow + "CSV: " + pathToCsv)
+    print(cYellow + 'initializing SOAP-Client')
+    print(cYellow + 'WSDL: ' + wsdl)
+    print(cYellow + 'CSV: ' + pathToCsv)
     
     print('')
     
     #read csv
     with open(pathToCsv,'r') as f:
-        print("start reading file")
+        print('start reading file')
         reader = csv.DictReader(f, delimiter=';')
         for row in reader:
             list.append(row)
     
-    print(cGreen + "reading complete")
-    print(cDefault + "Number of lines:" + str(len(list)))
+    print(cGreen + 'reading complete')
+    print(cDefault + 'Number of lines:' + str(len(list)))
     
     print('')
     
@@ -66,20 +69,27 @@ else:
     print('')
     
     #send data
-    print(cRed + "start sending")
+    print(cRed + 'start sending')
     for data in list:
         print('')
-        print(cYellow + data['userName'])
-        try:
-            print(cGreen + "ok")
-            result = soapClient.service.func(data)
-            if result.status == 'error':
-                print(cRed + result.status.upper() + "    " + result.message)
-            elif result.status == 'success':
-                print(cGreen + result.status.upper() + "    " + result.message)
-            else:
-                print(cRed + "unknown status:" + result.status)
-        except:
-            print(cRed + "An exception occurred")
+        print(cYellow + data['userName'] + ':' + data['matricNumber'])
+        #ask before every dataset if silent isn't set
+        if not silent:
+            cont = raw_input('send? y/n: ')
+        else:
+            cont = 'y'
+
+        if cont.upper() == 'Y':
+            try:
+                print(cGreen + 'ok')
+                result = soapClient.service.func(data)
+                if result.status == 'error':
+                    print(cRed + result.status.upper() + '    ' + result.message)
+                elif result.status == 'success':
+                    print(cGreen + result.status.upper() + '    ' + result.message)
+                else:
+                    print(cRed + 'unknown status:' + result.status)
+            except:
+                print(cRed + 'An exception occurred')
     print('')
-print("END")
+print('END')
