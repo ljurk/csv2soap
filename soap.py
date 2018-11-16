@@ -26,21 +26,22 @@ pathToCsv = ''
 #init colorama
 init()
 
-#initialize SOAP Client
-print(cYellow + "initializing SOAP-Client")
-soapClient = Client(wsdl)
 
 if len(sys.argv) != 1:
     for i in range(len(sys.argv)):
         if sys.argv[i] == 'verbose':
-            verbose=i
+            verbose = i
         elif '.csv' in sys.argv[i]: 
-            pathToCsv=sys.argv[i]
+            pathToCsv = sys.argv[i]
             csvSet = 1
 
+#only continue if csv is given
 if not csvSet:
     print(cRed + "ERROR: no csv given")
 else:
+    #initialize SOAP Client
+    soapClient = Client(wsdl)
+    print(cYellow + "initializing SOAP-Client")
     print(cYellow + "WSDL: " + wsdl)
     print(cYellow + "CSV: " + pathToCsv)
     
@@ -54,7 +55,7 @@ else:
             list.append(row)
     
     print(cGreen + "reading complete")
-    print("Number of lines:" + str(len(list)))
+    print(cDefault + "Number of lines:" + str(len(list)))
     
     print('')
     
@@ -73,14 +74,12 @@ else:
             print(cGreen + "ok")
             result = soapClient.service.func(data)
             if result.status == 'error':
-                print(cRed + result.status.upper() +"    "+ result.message)
+                print(cRed + result.status.upper() + "    " + result.message)
             elif result.status == 'success':
-                print(cGreen + result.status.upper() +"    "+ result.message)
+                print(cGreen + result.status.upper() + "    " + result.message)
             else:
                 print(cRed + "unknown status:" + result.status)
         except:
             print(cRed + "An exception occurred")
     print('')
 print("END")
-
-
