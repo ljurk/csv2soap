@@ -17,7 +17,7 @@ wsdl = 'SOME_WSDL_URL'
 csvSet = 0
 pathToCsv = ''
 silent = 0
-logFile = './soappy.log'
+logFile = './log/soappy.log'
 
 #init log
 log.basicConfig(filename=logFile, level=log.INFO, format='%(asctime)s : %(levelname)s: %(message)s' )
@@ -26,9 +26,9 @@ log.getLogger().addHandler(log.StreamHandler())
 #parse arguments
 if len(sys.argv) != 1:
     for i in range(len(sys.argv)):
-        if sys.argv[i] == 'verbose':
-            verbose = i
-        elif sys.argv[i] == 'silent':
+        if sys.argv[i] == '--verbose' or sys.argv[i] == '-v':
+            verbose = 1
+        elif sys.argv[i] == 'silent' or sys.argv[i] == '-s':
             silent = 1
         elif '.csv' in sys.argv[i]: 
             pathToCsv = sys.argv[i]
