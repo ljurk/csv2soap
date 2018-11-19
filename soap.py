@@ -3,18 +3,12 @@ refrence: https://python-zeep.readthedocs.io/en/master/api.html
 
 prerequisites:
 	pip install zeep
-	pip install colorama
 '''
+#imports
 import sys
 import csv
-from colorama import Fore, Style, init
+import logging as log
 from zeep import Client
-
-#colors
-cRed = Style.BRIGHT + Fore.RED
-cDefault = Style.RESET_ALL
-cGreen = Style.BRIGHT + Fore.GREEN
-cYellow = Style.BRIGHT + Fore.YELLOW
 
 #variables
 list = []
@@ -23,11 +17,13 @@ wsdl = 'SOME_WSDL_URL'
 csvSet = 0
 pathToCsv = ''
 silent = 0
+logFile = './soappy.log'
 
-#init colorama
-init()
+#init log
+log.basicConfig(filename=logFile, level=log.INFO, format='%(asctime)s : %(levelname)s: %(message)s' )
+log.getLogger().addHandler(log.StreamHandler())
 
-
+#parse arguments
 if len(sys.argv) != 1:
     for i in range(len(sys.argv)):
         if sys.argv[i] == 'verbose':
@@ -38,41 +34,32 @@ if len(sys.argv) != 1:
             pathToCsv = sys.argv[i]
             csvSet = 1
 
+log.info('start')
+
 #only continue if csv is given
 if not csvSet:
-    print(cRed + 'ERROR: no csv given')
+    log.error('no csv given')
 else:
     #initialize SOAP Client
     soapClient = Client(wsdl)
-    print(cYellow + 'initializing SOAP-Client')
-    print(cYellow + 'WSDL: ' + wsdl)
-    print(cYellow + 'CSV: ' + pathToCsv)
-    
-    print('')
+
+    log.info('initializing SOAP-Client')
+    log.info('WSDL: ' + wsdl)
+    log.info('CSV: ' + pathToCsv)
     
     #read csv
     with open(pathToCsv,'r') as f:
-        print('start reading file')
+        log.info('start reading csv-file')
         reader = csv.DictReader(f, delimiter=';')
         for row in reader:
             list.append(row)
-    
-    print(cGreen + 'reading complete')
-    print(cDefault + 'Number of lines:' + str(len(list)))
-    
-    print('')
-    
-    #print csv data
-    if verbose:
-        for i in list:
-            print(i)
-    print('')
-    
-    #send data
-    print(cRed + 'start sending')
+
+    log.info('reading complete')
+    log.info('number of lines: ' + str(len(list)))
+    log.info('start sending')
     for data in list:
-        print('')
-        print(cYellow + data['userName'] + ':' + data['matricNumber'])
+        log.info(data['userName'] + ':' + data['matricNumber'])
+
         #ask before every dataset if silent isn't set
         if not silent:
             cont = raw_input('send? y/n: ')
@@ -81,15 +68,13 @@ else:
 
         if cont.upper() == 'Y':
             try:
-                print(cGreen + 'ok')
                 result = soapClient.service.func(data)
                 if result.status == 'error':
-                    print(cRed + result.status.upper() + '    ' + result.message)
+                    log.error(result.message)
                 elif result.status == 'success':
-                    print(cGreen + result.status.upper() + '    ' + result.message)
+                    log.info(result.message)
                 else:
-                    print(cRed + 'unknown status:' + result.status)
+                    log.error(result.status + result.message)
             except:
-                print(cRed + 'An exception occurred')
-    print('')
-print('END')
+                 log.error('An exception occurred')
+log.info('end')
